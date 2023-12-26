@@ -153,6 +153,7 @@ app.post("/api", function (req, res) {
     req.coloiko == "kocoloi" ||
     qr["command"] == "login" ||
     qr["command"] == "login2" ||
+    qr["command"] == "signup" ||
     qr["command"] == "login3"
   ) {
     api_module.process_api(req, res);
