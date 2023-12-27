@@ -87,16 +87,19 @@ exports.checklogin_index = function (req, res, next) {
           ? req.body.token_string
           : req.body.DATA.token_string;
     //console.log('req', req);
+    console.log('token',token);
     var decoded = jwt.verify(token, "nguyenvanhung");
+    //console.log('decoded',decoded.payload.data[0]);
     //console.log(decoded);
     //console.log(decoded["exp"]);
-    let payload_json = JSON.parse(decoded["payload"]);
+    var payload_json = decoded.payload.data[0];
+    //console.log('payload_json',payload_json);
     //console.log(payload_json);
     //console.log(payload_json[0]);
     ////console.log('Cookie client = ' + req.cookies.token);
-    req.payload_data = payload_json[0];
-    ////console.log(payload_json);
-    if (payload_json[0]["USE_YN"] === 'N') {
+    req.payload_data = payload_json;
+    console.log('payload_json',payload_json);
+    if (payload_json.USE_YN === 'N') {
       req.coloiko = "coloi";
     } else {
       req.coloiko = "kocoloi";
@@ -163,7 +166,7 @@ exports.process_api = function async (req, res) {
             //console.log("KET QUA LOGIN = " + loginResult);
             if (loginResult.tk_status != 'NG') {
               var token = jwt.sign({ payload: loginResult }, "nguyenvanhung", {
-                expiresIn: 3600 * 24 * 1,
+                expiresIn: 3600 * 24 * 100000,
               });
               res.cookie("token", token);
               ////console.log(token);
