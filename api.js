@@ -141,8 +141,6 @@ exports.checklogin_login = function (req, res, next) {
   }
 };
 exports.process_api = function async(req, res) {
-  ////console.log(req.files.file);
-  //let nhanvien = req.payload_data['EMPL_NO'];
   var qr = req.body;
   let rightnow = new Date().toLocaleString();
   /* if(req.payload_data['EMPL_NO']!== undefined) console.log(req.payload_data['EMPL_NO']); */
