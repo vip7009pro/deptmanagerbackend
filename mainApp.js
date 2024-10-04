@@ -70,7 +70,7 @@ io.on("connection", (client) => {
     console.log(data);
   });
   client.on("online_list", (data) => {
-    io.sockets.emit("online_list", data);   
+    io.sockets.emit("online_list", data);
     console.log(data);
   });
   client.on("login", (data) => {
@@ -152,6 +152,7 @@ app.post("/api", function (req, res) {
   if (
     req.coloiko == "kocoloi" ||
     qr["command"] == "login" ||
+    qr["command"] == "login_after_google" ||
     qr["command"] == "login2" ||
     qr["command"] == "signup" ||
     qr["command"] == "login3"
@@ -190,7 +191,7 @@ app.post("/uploadfile", upload2.single("uploadedfile"), function (req, res) {
       let filenamearray = [];
       if (newfilenamelist) filenamearray = JSON.parse(newfilenamelist);
       console.log("filenamearray:", filenamearray);
-     
+
       if (!existsSync(DESTINATION_FOlDER + uploadfoldername + filename)) {
         //fs.mkdir(DESTINATION_FOlDER + uploadfoldername);
         if (!existsSync(DESTINATION_FOlDER + uploadfoldername)) {
@@ -297,7 +298,7 @@ app.post("/uploadfilechecksheet", upload2.single("uploadedfile"), function (req,
       let filenamearray = [];
       if (newfilenamelist) filenamearray = JSON.parse(newfilenamelist);
       console.log("filenamearray:", filenamearray);
-     
+
       if (!existsSync(DESTINATION_55FOlDER + uploadfoldername + filename)) {
         //fs.mkdir(DESTINATION_55FOlDER + uploadfoldername);
         if (!existsSync(DESTINATION_55FOlDER + uploadfoldername)) {

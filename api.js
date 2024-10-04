@@ -159,6 +159,38 @@ exports.process_api = function async(req, res) {
           }
         })();
         break;
+      case "login_after_google":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT * FROM U1 WHERE EMAIL='${DATA.EMAIL}' AND UID ='${DATA.UID}'
+          `;
+          console.log(DATA.EMAIL);
+          console.log(DATA.UID);
+          //console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          loginResult = checkkq;
+          //console.log("KET QUA LOGIN = " + loginResult);
+          if (loginResult.tk_status != 'NG') {
+            var token = jwt.sign({ payload: loginResult }, "nguyenvanhung", {
+              expiresIn: 3600 * 24 * 100000,
+            });
+            res.cookie("token", token);
+            ////console.log(token);
+            res.send({
+              tk_status: "OK",
+              token_content: token,
+              data: [loginResult],
+            });
+            //console.log('login thanh cong');
+          } else {
+            res.send({ tk_status: "ng", token_content: token });
+            console.log({ tk_status: "ng", token_content: token });
+            //console.log('login that bai');
+          }
+        })();
+        break;
       case "signup":
         (async () => {
           let DATA = qr["DATA"];
@@ -168,6 +200,34 @@ exports.process_api = function async(req, res) {
             INSERT INTO U1 (UID,EMAIL,PWD, USERNAME,USE_YN,INS_DATE, INS_UID, UPD_DATE, UPD_UID) VALUES ('${DATA.UID}','${DATA.EMAIL}','${DATA.PWD}','${DATA.EMAIL}','Y',GETDATE(),'${DATA.UID}',GETDATE(),'${DATA.UID}')             
             `;
           console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;
+      case "getShopList":
+        (async () => {          
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT * FROM S1 WHERE UID='${req.payload_data.UID}'           
+            `;
+          //console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;
+      case "addNewShop":
+        (async () => {          
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO S1 (UID,SHOP_NAME, SHOP_ADD, SHOP_DESCR, INS_DATE, INS_UID, UPD_DATE, UPD_UID) VALUES ('${req.payload_data.UID}',N'${DATA.SHOP_NAME}',N'${DATA.SHOP_ADD}',N'${DATA.SHOP_DESCR}',GETDATE(),'${req.payload_data.UID}',GETDATE(),'${req.payload_data.UID}')
+            `;
+          //console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
           //console.log(checkkq);
           res.send(checkkq);
