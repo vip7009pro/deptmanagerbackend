@@ -5,6 +5,7 @@ const { existsSync } = require("fs");
 const fs = require("fs");
 require("dotenv").config();
 const fetch = require('node-fetch');
+const { list } = require("node-windows");
 let CURRENT_API_URL = 'https://script.google.com/macros/s/AKfycbyD_LRqVLETu8IvuiqDSsbItdmzRw3p_q9gCv12UOer0V-5OnqtbJvKjK86bfgGbUM1NA/exec'
 function removeVietnameseTones(str) {
   str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
@@ -64,7 +65,7 @@ const queryDB = async (query) => {
       }
     } else {
       kq = { tk_status: "NG", message: "Không có dòng dữ liệu nào" };
-    }    
+    }
   } catch (err) {
     ////console.log(err);
     kq = { tk_status: "NG", message: err + " " };
@@ -72,16 +73,16 @@ const queryDB = async (query) => {
   return kq;
 };
 exports.checklogin_index = function (req, res, next) {
-  try {    
-    var token = req.cookies.token;   
+  try {
+    var token = req.cookies.token;
     if (token === undefined)
       token =
         req.body.DATA.token_string === undefined
           ? req.body.token_string
-          : req.body.DATA.token_string;   
-    var decoded = jwt.verify(token, "nguyenvanhung");    
-    var payload_json = decoded.payload.data[0];   
-    req.payload_data = payload_json;  
+          : req.body.DATA.token_string;
+    var decoded = jwt.verify(token, "nguyenvanhung");
+    var payload_json = decoded.payload.data[0];
+    req.payload_data = payload_json;
     if (payload_json.USE_YN === 'N') {
       req.coloiko = "coloi";
     } else {
@@ -110,11 +111,11 @@ exports.checklogin_login = function (req, res, next) {
     var token = req.cookies.token;
     var decoded = jwt.verify(token, "nguyenvanhung");
     console.log("token= " + token);
-    let payload_json = JSON.parse(decoded["payload"]); 
-    req.payload_data = payload_json[0];  
+    let payload_json = JSON.parse(decoded["payload"]);
+    req.payload_data = payload_json[0];
     res.redirect("/");
     next();
-  } catch (err) {    
+  } catch (err) {
     next();
   }
 };
@@ -134,8 +135,7 @@ exports.process_api = function async(req, res) {
           let setpdQuery = `
             SELECT * FROM U1 WHERE EMAIL='${DATA.EMAIL}' AND PWD ='${DATA.PWD}'
           `;
-          console.log(DATA.EMAIL);
-          console.log(DATA.PWD);
+          console.log(setpdQuery);
           //console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
           loginResult = checkkq;
@@ -166,8 +166,7 @@ exports.process_api = function async(req, res) {
           let setpdQuery = `
             SELECT * FROM U1 WHERE EMAIL='${DATA.EMAIL}' AND UID ='${DATA.UID}'
           `;
-          console.log(DATA.EMAIL);
-          console.log(DATA.UID);
+          console.log(setpdQuery);
           //console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
           loginResult = checkkq;
@@ -206,7 +205,7 @@ exports.process_api = function async(req, res) {
         })();
         break;
       case "getShopList":
-        (async () => {          
+        (async () => {
           let DATA = qr["DATA"];
           //console.log(DATA);           
           let checkkq = "OK";
@@ -219,20 +218,119 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);
         })();
         break;
+      case "getShopInfo":
+        (async () => {
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT * FROM S1 WHERE UID='${req.payload_data.UID}' AND SHOP_ID='${DATA.SHOP_ID}'           
+            `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;
+      case "updateShopInfo":
+        (async () => {
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE S1 SET SHOP_NAME=N'${DATA.SHOP_NAME}', SHOP_ADD=N'${DATA.SHOP_ADD}', SHOP_DESCR=N'${DATA.SHOP_DESCR}', UPD_DATE=GETDATE(), UPD_UID='${req.payload_data.UID}' WHERE UID='${req.payload_data.UID}' AND SHOP_ID='${DATA.SHOP_ID}'           
+            `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;
       case "addNewShop":
-        (async () => {          
+        (async () => {
           let DATA = qr["DATA"];
           //console.log(DATA);           
           let checkkq = "OK";
           let setpdQuery = `
             INSERT INTO S1 (UID,SHOP_NAME, SHOP_ADD, SHOP_DESCR, INS_DATE, INS_UID, UPD_DATE, UPD_UID) VALUES ('${req.payload_data.UID}',N'${DATA.SHOP_NAME}',N'${DATA.SHOP_ADD}',N'${DATA.SHOP_DESCR}',GETDATE(),'${req.payload_data.UID}',GETDATE(),'${req.payload_data.UID}')
             `;
-          //console.log(setpdQuery);
+          console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
           //console.log(checkkq);
           res.send(checkkq);
         })();
         break;
+      case "addvendor":
+        (async () => {
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO V1 (SHOP_ID, VENDOR_CODE, VENDOR_NAME, VENDOR_ADD, VENDOR_PHONE, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
+            VALUES (             
+              '${DATA.SHOP_ID}',
+              '${DATA.VENDOR_CODE}',
+              N'${DATA.VENDOR_NAME}',
+              N'${DATA.VENDOR_ADD}',
+              '${DATA.VENDOR_PHONE}',
+              GETDATE(),
+              '${req.payload_data.UID}',
+              GETDATE(),
+              '${req.payload_data.UID}'
+            )
+            `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;
+      //get vendor list
+      case "getvendorlist":
+        (async () => {
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT * FROM V1 WHERE SHOP_ID='${DATA.SHOP_ID}'           
+            `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;
+
+        //addNewProduct
+      case "addNewProduct":
+        (async () => {
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO P1 (SHOP_ID, PROD_CODE, PROD_NAME, PROD_PRICE, PROD_IMG, PROD_DESCR, CAT_ID, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_CODE}', N'${DATA.PROD_NAME}', ${DATA.PROD_PRICE}, '${DATA.PROD_IMG}', N'${DATA.PROD_DESCR}', '${DATA.CAT_ID}',  GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')  
+            `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;  
+      case "getProductList":
+        (async () => {
+          let DATA = qr["DATA"];
+          //console.log(DATA);           
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT * FROM P1 WHERE SHOP_ID = '${DATA.SHOP_ID}'
+            `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          //console.log(checkkq);
+          res.send(checkkq);
+        })();
+        break;  
       default:        //console.log(qr['command']);
         res.send({ tk_status: "OK", data: req.payload_data });
     }
