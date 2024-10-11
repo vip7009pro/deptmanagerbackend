@@ -331,6 +331,90 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);
         })();
         break;  
+      case "addNewCustomer":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO C1 (SHOP_ID, CUS_NAME, CUS_PHONE, CUS_EMAIL, CUS_ADD, CUS_LOC, CUST_CD, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
+            VALUES ('${DATA.SHOP_ID}', N'${DATA.CUS_NAME}', '${DATA.CUS_PHONE}', '${DATA.CUS_EMAIL}', N'${DATA.CUS_ADD}', '${DATA.CUS_LOC}', '${DATA.CUST_CD}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+      case "getCustomerList":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT * FROM C1 WHERE SHOP_ID = '${DATA.SHOP_ID}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+      case "getOrderList":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT K1.*, C1.CUS_NAME, P1.PROD_NAME FROM K1 
+            LEFT JOIN C1 ON (C1.SHOP_ID = K1.SHOP_ID AND C1.CUS_ID = K1.CUS_ID AND C1.CUST_CD = K1.CUST_CD)
+            LEFT JOIN P1 ON (P1.SHOP_ID = K1.SHOP_ID AND P1.PROD_ID = K1.PROD_ID AND P1.PROD_CODE = K1.PROD_CODE)
+            WHERE K1.SHOP_ID = '${DATA.SHOP_ID}'
+            ORDER BY K1.INS_DATE DESC 
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+      case "addNewOrder":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO K1 (SHOP_ID, PROD_ID, CUS_ID, PO_NO, PO_QTY, PROD_PRICE, REMARK, INS_DATE, INS_UID, UPD_DATE, UPD_UID, PROD_CODE, CUST_CD)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', '${DATA.CUS_ID}', '${DATA.PO_NO}', ${DATA.PO_QTY}, ${DATA.PROD_PRICE}, '${DATA.REMARK}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}', '${DATA.PROD_CODE}', '${DATA.CUST_CD}')
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+      case "addNewInvoice":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO K2 (INVOICE_NO, SHOP_ID, PROD_ID, CUS_ID, PROD_CODE, CUST_CD, PO_NO, INVOICE_QTY, PROD_PRICE, REMARK, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
+            VALUES ('${DATA.INVOICE_NO}', '${DATA.SHOP_ID}', '${DATA.PROD_ID}', '${DATA.CUS_ID}', '${DATA.PROD_CODE}', '${DATA.CUST_CD}', '${DATA.PO_NO}', ${DATA.INVOICE_QTY}, ${DATA.PROD_PRICE}, '${DATA.REMARK}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+      case "getInvoiceList":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT K2.*, C1.CUS_NAME, P1.PROD_NAME FROM K2 
+            LEFT JOIN C1 ON (C1.SHOP_ID = K2.SHOP_ID AND C1.CUS_ID = K2.CUS_ID AND C1.CUST_CD = K2.CUST_CD)
+            LEFT JOIN P1 ON (P1.SHOP_ID = K2.SHOP_ID AND P1.PROD_ID = K2.PROD_ID AND P1.PROD_CODE = K2.PROD_CODE)
+            WHERE K2.SHOP_ID = '${DATA.SHOP_ID}'
+            ORDER BY K2.INS_DATE DESC 
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+
       default:        //console.log(qr['command']);
         res.send({ tk_status: "OK", data: req.payload_data });
     }
