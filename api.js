@@ -323,7 +323,7 @@ exports.process_api = function async(req, res) {
           //console.log(DATA);           
           let checkkq = "OK";
           let setpdQuery = `
-            SELECT * FROM P1 WHERE SHOP_ID = '${DATA.SHOP_ID}'
+            SELECT * FROM P1 WHERE SHOP_ID = '${DATA.SHOP_ID}' ORDER BY INS_DATE DESC
             `;
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
@@ -349,7 +349,7 @@ exports.process_api = function async(req, res) {
           let DATA = qr["DATA"];
           let checkkq = "OK";
           let setpdQuery = `
-            SELECT * FROM C1 WHERE SHOP_ID = '${DATA.SHOP_ID}'
+            SELECT * FROM C1 WHERE SHOP_ID = '${DATA.SHOP_ID}' ORDER BY INS_DATE DESC
           `;
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
@@ -414,7 +414,19 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);
         })();
         break;
-
+        //update product_image
+      case "updateProductImage":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE P1 SET PROD_IMG = '${DATA.PROD_IMG}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND PROD_CODE = '${DATA.PROD_CODE}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);  
+        })();
+        break;  
       default:        //console.log(qr['command']);
         res.send({ tk_status: "OK", data: req.payload_data });
     }
