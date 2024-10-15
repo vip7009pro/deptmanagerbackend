@@ -38,6 +38,9 @@ function removeVietnameseTones(str) {
   );
   return str;
 }
+let TEMP_UPLOAD_FOLDER = process.env.TEMP_UPLOAD_FOLDER;
+let DESTINATION_FOlDER = process.env.DESTINATION_FOlDER;
+
 const config = {
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -423,6 +426,28 @@ exports.process_api = function async(req, res) {
             UPDATE P1 SET PROD_IMG = '${DATA.PROD_IMG}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND PROD_CODE = '${DATA.PROD_CODE}'
           `;
           console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);  
+        })();
+        break;  
+      //delete image 
+      case "deleteProductImage":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE P1 SET PROD_IMG = '' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND PROD_CODE = '${DATA.PROD_CODE}'
+          `;
+          console.log(setpdQuery);
+          let filenameArray = DATA.PROD_IMG.split(',');
+          for (let i = 0; i < filenameArray.length; i++) {
+            let filepath = DESTINATION_FOlDER + 'product_images\\' + DATA.SHOP_ID + '_' + DATA.PROD_CODE + '_' + filenameArray[i]+'.jpg';
+            console.log(filepath);  
+            fs.rm(filepath, (error) => {
+              console.log("Loi dong 390:" + error);
+            //res.send({ tk_status: "NG", message: "Upload file thất bại: " + error });
+          });
+          }
           checkkq = await queryDB(setpdQuery);
           res.send(checkkq);  
         })();
