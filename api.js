@@ -452,6 +452,55 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);  
         })();
         break;  
+        //input warehouse table W1 with the following fields SHOP_ID	WH_IN_ID	PROD_ID	PROD_QTY	PROD_STATUS	INS_DATE	INS_UID	UPD_DATE	UPD_UID	PROD_CODE	CUST_CD	VENDOR_CODE
+      case "inputWarehouse":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+          INSERT INTO W1 (SHOP_ID, PROD_ID, PROD_QTY, PROD_STATUS, INS_DATE, INS_UID, UPD_DATE, UPD_UID, PROD_CODE, VENDOR_CODE)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.PROD_STATUS}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}', '${DATA.PROD_CODE}', '${DATA.VENDOR_CODE}')
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+        //output warehouse table W2 with the following fields SHOP_ID	PROD_ID	PROD_QTY	CUS_ID PROD_CODE	CUST_CD
+      case "outputWarehouse":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO W2 (SHOP_ID, PROD_ID, PROD_QTY, CUS_ID, PROD_CODE, CUST_CD, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.CUS_ID}', '${DATA.PROD_CODE}', '${DATA.CUST_CD}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')
+          `;  
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+        //get wareohouse input history with the following fields SHOP_ID	WH_IN_ID	PROD_ID	PROD_QTY	PROD_STATUS	INS_DATE	INS_UID	UPD_DATE	UPD_UID	PROD_CODE	CUST_CD	VENDOR_CODE	PROD_NAME	PROD_DESCR	PROD_IMG	VENDOR_NAME
+      case "getWarehouseInputHistory":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT W1.*,  P1.PROD_NAME,P1.PROD_DESCR, P1.PROD_IMG, V1.VENDOR_NAME FROM W1
+            LEFT JOIN P1 ON P1.SHOP_ID = W1.SHOP_ID AND P1.PROD_CODE = W1.PROD_CODE
+            LEFT JOIN V1 ON V1.SHOP_ID = W1.SHOP_ID AND V1.VENDOR_CODE = W1.VENDOR_CODE
+            WHERE W1.SHOP_ID = '${DATA.SHOP_ID}'  
+          `;  
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+        
+        
+
+        
+        
       default:        //console.log(qr['command']);
         res.send({ tk_status: "OK", data: req.payload_data });
     }
