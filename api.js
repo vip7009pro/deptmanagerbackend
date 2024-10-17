@@ -364,7 +364,7 @@ exports.process_api = function async(req, res) {
           let DATA = qr["DATA"];
           let checkkq = "OK";
           let setpdQuery = `
-            SELECT K1.*, C1.CUS_NAME, P1.PROD_NAME FROM K1 
+            SELECT K1.*, C1.CUS_NAME, isnull(P1.PROD_NAME, '') AS PROD_NAME  FROM K1 
             LEFT JOIN C1 ON (C1.SHOP_ID = K1.SHOP_ID AND C1.CUS_ID = K1.CUS_ID AND C1.CUST_CD = K1.CUST_CD)
             LEFT JOIN P1 ON (P1.SHOP_ID = K1.SHOP_ID AND P1.PROD_ID = K1.PROD_ID AND P1.PROD_CODE = K1.PROD_CODE)
             WHERE K1.SHOP_ID = '${DATA.SHOP_ID}'
@@ -406,7 +406,7 @@ exports.process_api = function async(req, res) {
           let DATA = qr["DATA"];
           let checkkq = "OK";
           let setpdQuery = `
-            SELECT K2.*, C1.CUS_NAME, P1.PROD_NAME FROM K2 
+            SELECT K2.*, C1.CUS_NAME, isnull(P1.PROD_NAME, '') AS PROD_NAME FROM K2 
             LEFT JOIN C1 ON (C1.SHOP_ID = K2.SHOP_ID AND C1.CUS_ID = K2.CUS_ID AND C1.CUST_CD = K2.CUST_CD)
             LEFT JOIN P1 ON (P1.SHOP_ID = K2.SHOP_ID AND P1.PROD_ID = K2.PROD_ID AND P1.PROD_CODE = K2.PROD_CODE)
             WHERE K2.SHOP_ID = '${DATA.SHOP_ID}'
@@ -496,11 +496,41 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);
         })();
         break;
-        
-        
+        //get warehouse output history
+      case "getWarehouseOutputHistory":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT W2.*,  P1.PROD_NAME,P1.PROD_DESCR, P1.PROD_IMG, C1.CUS_NAME FROM W2
+            LEFT JOIN P1 ON P1.SHOP_ID = W2.SHOP_ID AND P1.PROD_CODE = W2.PROD_CODE
+            LEFT JOIN C1 ON C1.SHOP_ID = W2.SHOP_ID AND C1.CUS_ID = W2.CUS_ID
+            WHERE W2.SHOP_ID = '${DATA.SHOP_ID}'
+          `;    
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;  
 
-        
-        
+
+        //get product stock by input qty - output qty
+      case "getProductStock": 
+        (async () => {  
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+             SELECT P1.PROD_ID, P1.PROD_CODE, P1.PROD_NAME, P1.PROD_PRICE, P1.PROD_IMG, P1.PROD_DESCR, P1.CAT_ID, P1.INS_DATE, P1.INS_UID, P1.UPD_DATE, P1.UPD_UID, 
+            ISNULL((SELECT SUM(W1.PROD_QTY) FROM W1 WHERE W1.SHOP_ID = P1.SHOP_ID AND W1.PROD_CODE = P1.PROD_CODE), 0) AS INPUT_QTY,
+            ISNULL((SELECT SUM(W2.PROD_QTY) FROM W2 WHERE W2.SHOP_ID = P1.SHOP_ID AND W2.PROD_CODE = P1.PROD_CODE), 0) AS OUTPUT_QTY,
+            ISNULL((SELECT SUM(W1.PROD_QTY) FROM W1 WHERE W1.SHOP_ID = P1.SHOP_ID AND W1.PROD_CODE = P1.PROD_CODE), 0) - ISNULL((SELECT SUM(W2.PROD_QTY) FROM W2 WHERE W2.SHOP_ID = P1.SHOP_ID AND W2.PROD_CODE = P1.PROD_CODE), 0) AS STOCK_QTY
+            FROM P1 WHERE P1.SHOP_ID = '${DATA.SHOP_ID}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);  
+          res.send(checkkq);
+        })();
+        break;
       default:        //console.log(qr['command']);
         res.send({ tk_status: "OK", data: req.payload_data });
     }
