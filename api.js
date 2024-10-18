@@ -458,8 +458,8 @@ exports.process_api = function async(req, res) {
           let DATA = qr["DATA"];
           let checkkq = "OK";
           let setpdQuery = `
-          INSERT INTO W1 (SHOP_ID, PROD_ID, PROD_QTY, PROD_STATUS, INS_DATE, INS_UID, UPD_DATE, UPD_UID, PROD_CODE, VENDOR_CODE)
-            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.PROD_STATUS}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}', '${DATA.PROD_CODE}', '${DATA.VENDOR_CODE}')
+            INSERT INTO W1 (SHOP_ID, PROD_ID, PROD_QTY, PROD_STATUS, INS_DATE, INS_UID, UPD_DATE, UPD_UID, PROD_CODE, VENDOR_CODE, BEP)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.PROD_STATUS}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}', '${DATA.PROD_CODE}', '${DATA.VENDOR_CODE}', ${DATA.BEP})
           `;
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
@@ -472,8 +472,8 @@ exports.process_api = function async(req, res) {
           let DATA = qr["DATA"];
           let checkkq = "OK";
           let setpdQuery = `
-            INSERT INTO W2 (SHOP_ID, PROD_ID, PROD_QTY, CUS_ID, PROD_CODE, CUST_CD, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
-            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.CUS_ID}', '${DATA.PROD_CODE}', '${DATA.CUST_CD}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')
+            INSERT INTO W2 (SHOP_ID, PROD_ID, PROD_QTY, CUS_ID, PROD_CODE, CUST_CD, INS_DATE, INS_UID, UPD_DATE, UPD_UID, WH_IN_ID)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.CUS_ID}', '${DATA.PROD_CODE}', '${DATA.CUST_CD}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}', '${DATA.WH_IN_ID}')
           `;  
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
@@ -485,11 +485,29 @@ exports.process_api = function async(req, res) {
         (async () => {
           let DATA = qr["DATA"];
           let checkkq = "OK";
+          let condition = `WHERE W1.SHOP_ID = '${DATA.SHOP_ID}'`;
+          if (DATA.PROD_CODE) {
+            condition += ` AND W1.PROD_CODE = '${DATA.PROD_CODE}'`;
+          }
+          if (DATA.VENDOR_CODE) {
+            condition += ` AND W1.VENDOR_CODE = '${DATA.VENDOR_CODE}'`;
+          } 
+          if (DATA.PROD_STATUS) {
+            condition += ` AND W1.PROD_STATUS = '${DATA.PROD_STATUS}'`;
+          } 
           let setpdQuery = `
-            SELECT W1.*,  P1.PROD_NAME,P1.PROD_DESCR, P1.PROD_IMG, V1.VENDOR_NAME FROM W1
+            SELECT W1.*,  P1.PROD_NAME, P1.PROD_DESCR, P1.PROD_IMG, V1.VENDOR_NAME, 
+                   ISNULL(W2.PROD_QTY, 0) AS OUTPUT_QTY, 
+                   (W1.PROD_QTY - ISNULL(W2.PROD_QTY, 0)) AS STOCK_QTY  
+            FROM W1
             LEFT JOIN P1 ON P1.SHOP_ID = W1.SHOP_ID AND P1.PROD_CODE = W1.PROD_CODE
             LEFT JOIN V1 ON V1.SHOP_ID = W1.SHOP_ID AND V1.VENDOR_CODE = W1.VENDOR_CODE
-            WHERE W1.SHOP_ID = '${DATA.SHOP_ID}'  
+            LEFT JOIN (
+                SELECT SHOP_ID, WH_IN_ID, PROD_CODE, SUM(PROD_QTY) AS PROD_QTY
+                FROM W2
+                GROUP BY SHOP_ID, WH_IN_ID, PROD_CODE
+            ) AS W2 ON W2.SHOP_ID = W1.SHOP_ID AND W2.WH_IN_ID = W1.WH_IN_ID AND W2.PROD_CODE = W1.PROD_CODE
+            ${condition}  
           `;  
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
@@ -528,6 +546,34 @@ exports.process_api = function async(req, res) {
           `;
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);  
+          res.send(checkkq);
+        })();
+        break;
+        //get today po qty and po amount
+      case "getTodayPOQtyAndAmount":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT ISNULL(SUM(K1.PO_QTY), 0) AS PO_QTY, ISNULL(SUM(K1.PO_QTY * K1.PROD_PRICE), 0) AS PO_AMOUNT
+            FROM K1 WHERE K1.SHOP_ID = '${DATA.SHOP_ID}' AND K1.INS_DATE >= '${moment.utc().format('YYYY-MM-DD')}' AND K1.INS_DATE < '${moment.utc().add(1, 'day').format('YYYY-MM-DD')}' 
+          `;
+          console.log(setpdQuery);  
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+        //get to day invoice qty and amount
+      case "getTodayInvoiceQtyAndAmount":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT ISNULL(SUM(K2.INVOICE_QTY), 0) AS INVOICE_QTY, ISNULL(SUM(K2.INVOICE_QTY * K2.PROD_PRICE), 0) AS INVOICE_AMOUNT
+            FROM K2 WHERE K2.SHOP_ID = '${DATA.SHOP_ID}' AND K2.INS_DATE >= '${moment.utc().format('YYYY-MM-DD')}' AND K2.INS_DATE < '${moment.utc().add(1, 'day').format('YYYY-MM-DD')}' 
+          `;    
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
           res.send(checkkq);
         })();
         break;
