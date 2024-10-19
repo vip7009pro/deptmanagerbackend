@@ -311,8 +311,8 @@ exports.process_api = function async(req, res) {
           //console.log(DATA);           
           let checkkq = "OK";
           let setpdQuery = `
-            INSERT INTO P1 (SHOP_ID, PROD_CODE, PROD_NAME, PROD_PRICE, PROD_IMG, PROD_DESCR, CAT_ID, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
-            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_CODE}', N'${DATA.PROD_NAME}', ${DATA.PROD_PRICE}, '${DATA.PROD_IMG}', N'${DATA.PROD_DESCR}', '${DATA.CAT_ID}',  GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')  
+            INSERT INTO P1 (SHOP_ID, PROD_CODE, PROD_NAME, PROD_PRICE, PROD_IMG, PROD_DESCR, CAT_ID,CAT_CODE, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_CODE}', N'${DATA.PROD_NAME}', ${DATA.PROD_PRICE}, '${DATA.PROD_IMG}', N'${DATA.PROD_DESCR}', '${DATA.CAT_ID}', '${DATA.CAT_CODE}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')  
             `;
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
@@ -417,6 +417,45 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);
         })();
         break;
+          //updateInvoice
+      case "updateInvoice":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE K2 SET INVOICE_NO = '${DATA.INVOICE_NO}', INVOICE_QTY = ${DATA.INVOICE_QTY}, PROD_PRICE = ${DATA.PROD_PRICE}, REMARK = '${DATA.REMARK}', UPD_DATE = GETDATE(), UPD_UID = '${req.payload_data.UID}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND INVOICE_NO = '${DATA.INVOICE_NO}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);  
+        })();
+        break;
+        //deleteInvoice
+      case "deleteInvoice":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            DELETE FROM K2 WHERE SHOP_ID = '${DATA.SHOP_ID}' AND INVOICE_NO = '${DATA.INVOICE_NO}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);  
+        })();
+        break;  
+        //editProduct
+      case "editProduct":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE P1 SET PROD_NAME = N'${DATA.PROD_NAME}', PROD_PRICE = ${DATA.PROD_PRICE}, PROD_DESCR = N'${DATA.PROD_DESCR}', CAT_ID = '${DATA.CAT_ID}', CAT_CODE = '${DATA.CAT_CODE}', UPD_DATE = GETDATE(), UPD_UID = '${req.payload_data.UID}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND PROD_CODE = '${DATA.PROD_CODE}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })(); 
+        break;
         //update product_image
       case "updateProductImage":
         (async () => {
@@ -430,7 +469,20 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);  
         })();
         break;  
-      //delete image 
+        //delete product
+      case "deleteProduct":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            DELETE FROM P1 WHERE SHOP_ID = '${DATA.SHOP_ID}' AND PROD_CODE = '${DATA.PROD_CODE}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);  
+          res.send(checkkq);
+        })();
+        break;  
+        //delete image 
       case "deleteProductImage":
         (async () => {
           let DATA = qr["DATA"];
@@ -577,6 +629,113 @@ exports.process_api = function async(req, res) {
           res.send(checkkq);
         })();
         break;
+        // get category list with the following fields CAT_ID	CAT_NAME	INS_DATE	INS_UID	UPD_DATE	UPD_UID table name P2
+      case "getCategoryList":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            SELECT * FROM P2 WHERE P2.SHOP_ID = '${DATA.SHOP_ID}'
+          `;
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })(); 
+        break;
+        //add new category SHOP_ID	CAT_ID	CAT_CODE	CAT_NAME	INS_DATE	INS_UID	UPD_DATE	UPD_UID
+      case "addNewCategory":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            INSERT INTO P2 (SHOP_ID, CAT_CODE, CAT_NAME, INS_DATE, INS_UID, UPD_DATE, UPD_UID)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.CAT_CODE}', N'${DATA.CAT_NAME}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}')
+          `;  
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;
+        //update category
+      case "updateCategory":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE P2 SET CAT_CODE = '${DATA.CAT_CODE}', CAT_NAME = N'${DATA.CAT_NAME}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND CAT_ID = '${DATA.CAT_ID}'
+          `;  
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;  
+        //delete category
+      case "deleteCategory":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            DELETE FROM P2 WHERE SHOP_ID = '${DATA.SHOP_ID}' AND CAT_CODE = '${DATA.CAT_CODE}'
+          `;    
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;   
+        //update vendor 
+      case "updateVendor":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE V1 SET VENDOR_CODE = '${DATA.VENDOR_CODE}', VENDOR_NAME = N'${DATA.VENDOR_NAME}', VENDOR_PHONE = '${DATA.VENDOR_PHONE}',  VENDOR_ADD = N'${DATA.VENDOR_ADD}', UPD_DATE = GETDATE(), UPD_UID = '${req.payload_data.UID}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND VENDOR_CODE = '${DATA.VENDOR_CODE}'
+          `;  
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;  
+        //delete vendor
+      case "deleteVendor":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK"; 
+          let setpdQuery = `
+            DELETE FROM V1 WHERE SHOP_ID = '${DATA.SHOP_ID}' AND VENDOR_CODE = '${DATA.VENDOR_CODE}'
+          `;    
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;     
+        //updateCustomer   
+      case "updateCustomer":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK";
+          let setpdQuery = `
+            UPDATE C1 SET CUS_NAME = N'${DATA.CUS_NAME}', CUS_PHONE = '${DATA.CUS_PHONE}', CUS_ADD = N'${DATA.CUS_ADD}', CUS_LOC = N'${DATA.CUS_LOC}', UPD_DATE = GETDATE(), UPD_UID = '${req.payload_data.UID}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND CUS_ID = '${DATA.CUS_ID}'
+          `;  
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;  
+          //deleteCustomer
+      case "deleteCustomer":
+        (async () => {
+          let DATA = qr["DATA"];
+          let checkkq = "OK"; 
+          let setpdQuery = `
+            DELETE FROM C1 WHERE SHOP_ID = '${DATA.SHOP_ID}' AND CUS_ID = '${DATA.CUS_ID}'
+          `;    
+          console.log(setpdQuery);
+          checkkq = await queryDB(setpdQuery);
+          res.send(checkkq);
+        })();
+        break;     
+        
+        
       default:        //console.log(qr['command']);
         res.send({ tk_status: "OK", data: req.payload_data });
     }
