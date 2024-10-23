@@ -662,7 +662,7 @@ exports.process_api = function async(req, res) {
           let DATA = qr["DATA"];
           let checkkq = "OK";
           let setpdQuery = `
-            UPDATE P2 SET CAT_CODE = '${DATA.CAT_CODE}', CAT_NAME = N'${DATA.CAT_NAME}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND CAT_ID = '${DATA.CAT_ID}'
+            UPDATE P2 SET CAT_CODE = '${DATA.CAT_CODE}', CAT_NAME = N'${DATA.CAT_NAME}' WHERE SHOP_ID = '${DATA.SHOP_ID}' AND CAT_CODE = '${DATA.CAT_CODE}'
           `;  
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
