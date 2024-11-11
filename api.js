@@ -363,11 +363,15 @@ exports.process_api = function async(req, res) {
         (async () => {
           let DATA = qr["DATA"];
           let checkkq = "OK";
+          let condition = `WHERE K1.SHOP_ID = '${DATA.SHOP_ID}'`;
+          if (DATA.PO_NO) {
+            condition += ` AND K1.PO_NO = '${DATA.PO_NO}'`;
+          }
           let setpdQuery = `
             SELECT K1.*, C1.CUS_NAME, isnull(P1.PROD_NAME, '') AS PROD_NAME  FROM K1 
             LEFT JOIN C1 ON (C1.SHOP_ID = K1.SHOP_ID AND C1.CUS_ID = K1.CUS_ID AND C1.CUST_CD = K1.CUST_CD)
             LEFT JOIN P1 ON (P1.SHOP_ID = K1.SHOP_ID AND P1.PROD_ID = K1.PROD_ID AND P1.PROD_CODE = K1.PROD_CODE)
-            WHERE K1.SHOP_ID = '${DATA.SHOP_ID}'
+            ${condition}
             ORDER BY K1.INS_DATE DESC 
           `;
           console.log(setpdQuery);
@@ -405,11 +409,15 @@ exports.process_api = function async(req, res) {
         (async () => {
           let DATA = qr["DATA"];
           let checkkq = "OK";
+          let condition = `WHERE K2.SHOP_ID = '${DATA.SHOP_ID}'`;
+          if (DATA.PROD_ID) {
+            condition += ` AND K2.PROD_ID = '${DATA.PROD_ID}'`;
+          }
           let setpdQuery = `
             SELECT K2.*, C1.CUS_NAME, isnull(P1.PROD_NAME, '') AS PROD_NAME FROM K2 
             LEFT JOIN C1 ON (C1.SHOP_ID = K2.SHOP_ID AND C1.CUS_ID = K2.CUS_ID AND C1.CUST_CD = K2.CUST_CD)
             LEFT JOIN P1 ON (P1.SHOP_ID = K2.SHOP_ID AND P1.PROD_ID = K2.PROD_ID AND P1.PROD_CODE = K2.PROD_CODE)
-            WHERE K2.SHOP_ID = '${DATA.SHOP_ID}'
+            ${condition}
             ORDER BY K2.INS_DATE DESC 
           `;
           console.log(setpdQuery);
@@ -524,8 +532,8 @@ exports.process_api = function async(req, res) {
           let DATA = qr["DATA"];
           let checkkq = "OK";
           let setpdQuery = `
-            INSERT INTO W2 (SHOP_ID, PROD_ID, PROD_QTY, CUS_ID, PROD_CODE, CUST_CD, INS_DATE, INS_UID, UPD_DATE, UPD_UID, WH_IN_ID)
-            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.CUS_ID}', '${DATA.PROD_CODE}', '${DATA.CUST_CD}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}', '${DATA.WH_IN_ID}')
+            INSERT INTO W2 (SHOP_ID, PROD_ID, PROD_QTY, CUS_ID, PROD_CODE, CUST_CD, INS_DATE, INS_UID, UPD_DATE, UPD_UID, WH_IN_ID, INVOICE_NO, OUT_TYPE)
+            VALUES ('${DATA.SHOP_ID}', '${DATA.PROD_ID}', ${DATA.PROD_QTY}, '${DATA.CUS_ID}', '${DATA.PROD_CODE}', '${DATA.CUST_CD}', GETDATE(), '${req.payload_data.UID}', GETDATE(), '${req.payload_data.UID}', '${DATA.WH_IN_ID}', '${DATA.INVOICE_NO}', '${DATA.OUT_TYPE}')
           `;  
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
@@ -559,7 +567,7 @@ exports.process_api = function async(req, res) {
                 FROM W2
                 GROUP BY SHOP_ID, WH_IN_ID, PROD_CODE
             ) AS W2 ON W2.SHOP_ID = W1.SHOP_ID AND W2.WH_IN_ID = W1.WH_IN_ID AND W2.PROD_CODE = W1.PROD_CODE
-            ${condition}  
+            ${condition}  ORDER BY W1.INS_DATE DESC
           `;  
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
