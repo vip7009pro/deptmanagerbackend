@@ -367,6 +367,9 @@ exports.process_api = function async(req, res) {
           if (DATA.PO_NO) {
             condition += ` AND K1.PO_NO = '${DATA.PO_NO}'`;
           }
+          if(DATA.JUST_PO_BALANCE === true) {
+            condition += ` AND K1.PO_QTY - ISNULL((SELECT SUM(K2.INVOICE_QTY) FROM K2 WHERE K2.SHOP_ID = K1.SHOP_ID AND K2.PO_NO = K1.PO_NO AND K2.PROD_CODE = K1.PROD_CODE), 0) > 0`;
+          } 
           let setpdQuery = `
             SELECT K1.*, C1.CUS_NAME, isnull(P1.PROD_NAME, '') AS PROD_NAME,
             ISNULL((SELECT SUM(K2.INVOICE_QTY) FROM K2 WHERE K2.SHOP_ID = K1.SHOP_ID AND K2.PO_NO = K1.PO_NO AND K2.PROD_CODE = K1.PROD_CODE), 0) AS DELIVERED_QTY,
@@ -375,7 +378,7 @@ exports.process_api = function async(req, res) {
             LEFT JOIN C1 ON (C1.SHOP_ID = K1.SHOP_ID AND C1.CUS_ID = K1.CUS_ID AND C1.CUST_CD = K1.CUST_CD)
             LEFT JOIN P1 ON (P1.SHOP_ID = K1.SHOP_ID AND P1.PROD_ID = K1.PROD_ID AND P1.PROD_CODE = K1.PROD_CODE)
             ${condition}
-            ORDER BY K1.INS_DATE DESC 
+            ORDER BY K1.INS_DATE DESC
           `;
           console.log(setpdQuery);
           checkkq = await queryDB(setpdQuery);
