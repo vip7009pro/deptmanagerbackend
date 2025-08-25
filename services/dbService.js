@@ -27,9 +27,7 @@ const commandHandlers = {
   updateProductImage,
   deleteProduct,
   addNewOrder, 
-  addNewInvoice,
-
-  
+  addNewInvoice, 
 };
 exports.processApi = async (req, res) => {
   const qr = req.body;
