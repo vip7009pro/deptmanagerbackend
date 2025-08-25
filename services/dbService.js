@@ -1,6 +1,6 @@
 const moment = require("moment");
 const { login, login_after_google, checklogin, logout } = require("./authService");
-const { getShopList, getShopInfo, addNewShop, updateShopInfo, deleteShop } = require("./shopService");
+const { getShopList, getShopInfo, addNewShop, updateShopInfo, deleteShop, addvendor, getvendorlist, addNewProduct, getproductlist, addNewCustomer, getCustomerList, addNewOrder, getOrderList, addNewInvoice, addNewCategory, updateCategory, deleteCategory, deleteProduct, updateProductImage } = require("./shopService");
 
 const commandHandlers = {
   login,
@@ -12,6 +12,22 @@ const commandHandlers = {
   addNewShop,
   updateShopInfo,
   deleteShop,
+  addvendor,
+  getvendorlist,
+  addNewProduct,
+  getproductlist,
+  addNewCustomer,
+  getCustomerList,
+  addNewOrder,
+  getOrderList,
+  addNewInvoice,
+  addNewCategory,
+  updateCategory,
+  deleteCategory,  
+  updateProductImage,
+  deleteProduct,
+  addNewOrder, 
+  addNewInvoice,
 
   
 };
